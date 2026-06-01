@@ -1,483 +1,423 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Ledger" />
-  <title>LEDGER — Personal Expense Tracker</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; background: #080c14; color: #c8d8e8; font-family: 'IBM Plex Mono', 'Courier New', monospace; overscroll-behavior: none; }
-    ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-track { background: #080c14; } ::-webkit-scrollbar-thumb { background: #1e3048; }
-
-    /* Layout */
-    #app { min-height: 100vh; display: flex; flex-direction: column; }
-    .header { border-bottom: 1px solid #1e3048; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: #080c14; z-index: 10; }
-    .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 4px; color: #e8f4ff; line-height: 1; }
-    .header-sub { font-size: 9px; letter-spacing: 3px; color: #2a5070; text-transform: uppercase; margin-top: 2px; }
-    .month-nav { display: flex; align-items: center; gap: 10px; }
-    .month-label { text-align: center; min-width: 110px; }
-    .month-name { font-family: 'Bebas Neue'; font-size: 18px; letter-spacing: 3px; color: #6aa0c8; }
-    .month-year { font-size: 10px; color: #2a5070; letter-spacing: 2px; }
-
-    /* Stats */
-    .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); border-bottom: 1px solid #1e3048; }
-    .stat-card { background: #080c14; padding: 14px 16px; border-right: 1px solid #1e3048; cursor: default; }
-    .stat-card:last-child { border-right: none; }
-    .stat-card.clickable { cursor: pointer; }
-    .stat-card.clickable:active { background: #0d1826; }
-    .stat-label { font-size: 8px; letter-spacing: 3px; color: #2a5070; text-transform: uppercase; margin-bottom: 5px; }
-    .stat-value { font-family: 'Bebas Neue'; font-size: 17px; letter-spacing: 1px; }
-    .stat-sub { font-size: 9px; color: #2a5070; margin-top: 3px; }
-
-    .split-bar { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #1e3048; }
-    .split-item { background: #080c14; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; border-right: 1px solid #1e3048; }
-    .split-item:last-child { border-right: none; }
-    .split-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; }
-    .split-value { font-size: 13px; font-weight: 600; }
-
-    /* Main */
-    .main { max-width: 860px; margin: 0 auto; padding: 20px 16px; width: 100%; }
-    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .tx-count { font-size: 9px; letter-spacing: 3px; color: #2a5070; text-transform: uppercase; }
-
-    /* Buttons */
-    .btn-primary { background: #1a6fa8; border: none; color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; padding: 10px 18px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: background 0.15s; border-radius: 2px; }
-    .btn-primary:active { background: #2080c0; }
-    .btn-ghost { background: none; border: 1px solid #1e3048; color: #4a7fa5; font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 8px 12px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; border-radius: 2px; }
-    .btn-ghost:active { border-color: #1a6fa8; color: #6aa0c8; }
-    .btn-nav { background: none; border: 1px solid #1e3048; color: #4a7fa5; font-size: 13px; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 2px; }
-    .btn-nav:active { background: #1e3048; }
-
-    /* Form */
-    .form-box { background: #0d1826; border: 1px solid #1e3048; padding: 18px; margin-bottom: 16px; }
-    .form-title { font-size: 9px; letter-spacing: 3px; color: #4a7fa5; text-transform: uppercase; margin-bottom: 14px; }
-    .form-row { display: grid; grid-template-columns: 1fr 130px; gap: 8px; margin-bottom: 8px; }
-    .input-field { background: #080c14; border: 1px solid #1e3048; color: #c8d8e8; font-family: 'IBM Plex Mono', monospace; font-size: 14px; padding: 11px 12px; outline: none; width: 100%; transition: border-color 0.15s; border-radius: 2px; -webkit-appearance: none; }
-    .input-field:focus { border-color: #1a6fa8; }
-    .type-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-    .type-btn { padding: 10px; background: none; border: 1px solid #1e3048; color: #4a7fa5; font-family: inherit; font-size: 11px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; border-radius: 2px; }
-    .type-btn.active-debit { background: #1a0d0d; border-color: #a04040; color: #d06060; }
-    .type-btn.active-credit { background: #0d1a10; border-color: #2a7a40; color: #4ab870; }
-    .mandatory-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; cursor: pointer; padding: 4px 0; }
-    .checkbox { width: 16px; height: 16px; border: 1.5px solid #1e3048; background: transparent; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 2px; }
-    .checkbox.checked { border-color: #8a8a40; background: #1a1a0d; }
-    .checkbox-dot { width: 8px; height: 8px; background: #8a8a40; border-radius: 1px; }
-    .mandatory-label { font-size: 10px; letter-spacing: 1px; color: #2a5070; text-transform: uppercase; }
-    .mandatory-label.active { color: #8a8a40; }
-    .auto-tag { font-size: 9px; color: #4a4a20; margin-left: 4px; }
-    .form-actions { display: flex; gap: 8px; }
-
-    /* Warning bar */
-    .warn-bar { border: 1px solid #2a3a1a; background: #0d1209; padding: 12px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-    .warn-text { font-size: 11px; color: #4a7a30; }
-
-    /* Empty state */
-    .empty { text-align: center; padding: 50px 20px; color: #1e3048; }
-    .empty-title { font-family: 'Bebas Neue'; font-size: 36px; letter-spacing: 4px; margin-bottom: 10px; }
-    .empty-sub { font-size: 11px; letter-spacing: 2px; }
-
-    /* Transaction list */
-    .tx-list { border: 1px solid #1e3048; }
-    .tx-header { display: grid; grid-template-columns: 44px 1fr 100px 100px 70px; padding: 9px 16px; background: #0d1826; border-bottom: 1px solid #1e3048; font-size: 8px; letter-spacing: 3px; color: #2a5070; text-transform: uppercase; }
-    .tx-row { display: grid; grid-template-columns: 44px 1fr 100px 100px 70px; align-items: center; padding: 11px 16px; border-bottom: 1px solid #0d1826; transition: background 0.1s; }
-    .tx-row:last-of-type { border-bottom: none; }
-    .tx-row.deleting { background: #1a0d0d; }
-    .tx-row:active { background: #0d1826; }
-    .tx-index { font-size: 10px; color: #2a5070; }
-    .tx-label { font-size: 12px; color: #c8d8e8; }
-    .mandatory-badge { display: inline-block; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; padding: 1px 5px; background: #1a1a0d; border: 1px solid #4a4a20; color: #8a8a40; margin-left: 6px; }
-    .tx-date { font-size: 9px; color: #2a5070; margin-top: 2px; }
-    .tx-amount { text-align: right; font-size: 12px; font-weight: 500; }
-    .tx-running { text-align: right; font-size: 12px; }
-    .tx-actions { display: flex; gap: 5px; justify-content: flex-end; }
-    .action-btn { background: none; border: 1px solid #1e3048; font-size: 10px; padding: 4px 8px; cursor: pointer; font-family: inherit; border-radius: 2px; }
-    .edit-btn { color: #4a7fa5; border-color: #1e3048; }
-    .edit-btn:active { background: #1e3048; }
-    .del-btn { color: #a04040; border-color: #2a1a1a; }
-    .del-btn:active { background: #2a1a1a; }
-    .confirm-btns { display: flex; gap: 4px; }
-
-    /* Footer */
-    .tx-footer { display: grid; grid-template-columns: 44px 1fr 100px 100px 70px; padding: 13px 16px; background: #0d1826; border-top: 1px solid #1e3048; }
-    .footer-label { font-size: 9px; letter-spacing: 2px; color: #2a5070; text-transform: uppercase; }
-    .footer-amounts { text-align: right; }
-    .footer-closing { text-align: right; font-size: 14px; font-weight: 600; }
-
-    /* Modal */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(8,12,20,0.88); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-    .modal-box { background: #0d1826; border: 1px solid #1e3048; padding: 28px; width: 100%; max-width: 340px; border-radius: 2px; }
-    .modal-label { font-size: 9px; letter-spacing: 3px; color: #4a7fa5; text-transform: uppercase; margin-bottom: 4px; }
-    .modal-title { font-family: 'Bebas Neue'; font-size: 20px; letter-spacing: 3px; color: #e8f4ff; margin-bottom: 18px; }
-    .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
-
-    /* Toast */
-    .toast { position: fixed; top: 16px; right: 16px; z-index: 999; padding: 10px 16px; font-size: 11px; letter-spacing: 1px; border-radius: 2px; pointer-events: none; transition: opacity 0.3s; }
-    .toast.success { background: #0d1a10; border: 1px solid #2a7a40; color: #4ab870; }
-    .toast.error { background: #1a0d0d; border: 1px solid #a04040; color: #d06060; }
-    .toast.hidden { opacity: 0; }
-
-    /* Mobile responsive */
-    @media (max-width: 600px) {
-      .stats-grid { grid-template-columns: repeat(3, 1fr); }
-      .stat-card:nth-child(4) { border-top: 1px solid #1e3048; }
-      .stat-card:nth-child(5) { border-top: 1px solid #1e3048; border-right: none; }
-      .stat-card:nth-child(3) { border-right: none; }
-      .tx-header { grid-template-columns: 36px 1fr 90px 70px; }
-      .tx-row { grid-template-columns: 36px 1fr 90px 70px; }
-      .tx-footer { grid-template-columns: 36px 1fr 90px 70px; }
-      .tx-actions { display: none; }
-      .tx-row-tap { cursor: pointer; }
-      .form-row { grid-template-columns: 1fr; }
-      .header-title { font-size: 26px; }
-    }
-
-    /* PWA safe areas */
-    @supports (padding-top: env(safe-area-inset-top)) {
-      .header { padding-top: calc(16px + env(safe-area-inset-top)); }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Ledger"/>
+<title>LEDGER</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#080c14;color:#c8d8e8;font-family:'IBM Plex Mono','Courier New',monospace;overscroll-behavior:none}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#080c14}::-webkit-scrollbar-thumb{background:#1e3048}
+.hdr{border-bottom:1px solid #1e3048;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;background:#080c14;position:sticky;top:0;z-index:10}
+.hdr-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:4px;color:#e8f4ff;line-height:1}
+.hdr-sub{font-size:9px;letter-spacing:3px;color:#2a5070;text-transform:uppercase;margin-top:2px}
+.mnav{display:flex;align-items:center;gap:8px}
+.mname{font-family:'Bebas Neue';font-size:17px;letter-spacing:3px;color:#6aa0c8;text-align:center;min-width:100px}
+.myear{font-size:9px;color:#2a5070;letter-spacing:2px;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid #1e3048}
+.scard{background:#080c14;padding:12px 14px;border-right:1px solid #1e3048;cursor:default}
+.scard:last-child{border-right:none}
+.scard.tap{cursor:pointer}
+.scard.tap:active{background:#0d1826}
+.slbl{font-size:8px;letter-spacing:3px;color:#2a5070;text-transform:uppercase;margin-bottom:4px}
+.sval{font-family:'Bebas Neue';font-size:16px;letter-spacing:1px}
+.ssub{font-size:9px;color:#2a5070;margin-top:2px}
+.splitbar{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #1e3048}
+.spi{background:#080c14;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-right:1px solid #1e3048}
+.spi:last-child{border-right:none}
+.spilbl{font-size:9px;letter-spacing:2px;text-transform:uppercase}
+.spival{font-size:13px;font-weight:600}
+.main{max-width:860px;margin:0 auto;padding:18px 14px;width:100%}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.txcount{font-size:9px;letter-spacing:3px;color:#2a5070;text-transform:uppercase}
+.btn-p{background:#1a6fa8;border:none;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:10px 16px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;border-radius:2px}
+.btn-p:active{background:#2080c0}
+.btn-g{background:none;border:1px solid #1e3048;color:#4a7fa5;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:8px 12px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;border-radius:2px}
+.btn-g:active{border-color:#1a6fa8}
+.btn-nav{background:none;border:1px solid #1e3048;color:#4a7fa5;font-size:13px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:2px}
+.btn-nav:active{background:#1e3048}
+.formbox{background:#0d1826;border:1px solid #1e3048;padding:16px;margin-bottom:14px;border-radius:2px}
+.fmtitle{font-size:9px;letter-spacing:3px;color:#4a7fa5;text-transform:uppercase;margin-bottom:12px}
+.fmrow{display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:8px}
+.inp{background:#080c14;border:1px solid #1e3048;color:#c8d8e8;font-family:'IBM Plex Mono',monospace;font-size:14px;padding:10px 12px;outline:none;width:100%;border-radius:2px;-webkit-appearance:none}
+.inp:focus{border-color:#1a6fa8}
+.typerow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.typebtn{padding:10px;background:none;border:1px solid #1e3048;color:#4a7fa5;font-family:inherit;font-size:11px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;border-radius:2px}
+.typebtn.debit{background:#1a0d0d;border-color:#a04040;color:#d06060}
+.typebtn.credit{background:#0d1a10;border-color:#2a7a40;color:#4ab870}
+.mandtog{display:flex;align-items:center;gap:10px;margin-bottom:14px;cursor:pointer;padding:4px 0}
+.chk{width:16px;height:16px;border:1.5px solid #1e3048;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:2px}
+.chk.on{border-color:#8a8a40;background:#1a1a0d}
+.chkdot{width:8px;height:8px;background:#8a8a40;border-radius:1px}
+.mandlbl{font-size:10px;letter-spacing:1px;color:#2a5070;text-transform:uppercase}
+.mandlbl.on{color:#8a8a40}
+.autotag{font-size:9px;color:#4a4a20;margin-left:4px}
+.fmactions{display:flex;gap:8px}
+.warnbar{border:1px solid #2a3a1a;background:#0d1209;padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;border-radius:2px}
+.warntext{font-size:11px;color:#4a7a30}
+.empty{text-align:center;padding:50px 20px;color:#1e3048}
+.empty-t{font-family:'Bebas Neue';font-size:36px;letter-spacing:4px;margin-bottom:8px}
+.empty-s{font-size:11px;letter-spacing:2px}
+.txlist{border:1px solid #1e3048;border-radius:2px;overflow:hidden}
+.txhdr{display:grid;grid-template-columns:40px 1fr 100px 100px 80px;padding:9px 14px;background:#0d1826;border-bottom:1px solid #1e3048;font-size:8px;letter-spacing:3px;color:#2a5070;text-transform:uppercase}
+.txrow{display:grid;grid-template-columns:40px 1fr 100px 100px 80px;align-items:center;padding:11px 14px;border-bottom:1px solid #0d1826;transition:background 0.1s;cursor:pointer}
+.txrow:last-of-type{border-bottom:none}
+.txrow.del{background:#1a0d0d}
+.txrow:active{background:#0d1826}
+.txidx{font-size:10px;color:#2a5070}
+.txlbl{font-size:12px;color:#c8d8e8}
+.mbadge{display:inline-block;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:1px 5px;background:#1a1a0d;border:1px solid #4a4a20;color:#8a8a40;margin-left:6px}
+.txdate{font-size:9px;color:#2a5070;margin-top:2px}
+.txamt{text-align:right;font-size:12px;font-weight:500}
+.txrun{text-align:right;font-size:12px}
+.txact{display:flex;gap:5px;justify-content:flex-end}
+.abtn{background:none;border:1px solid #1e3048;font-size:10px;padding:4px 7px;cursor:pointer;font-family:inherit;border-radius:2px}
+.abtn.e{color:#4a7fa5;border-color:#1e3048}
+.abtn.d{color:#a04040;border-color:#2a1a1a}
+.txftr{display:grid;grid-template-columns:40px 1fr 100px 100px 80px;padding:12px 14px;background:#0d1826;border-top:1px solid #1e3048}
+.ftramt{text-align:right}
+.ftrcls{text-align:right;font-size:14px;font-weight:600}
+.overlay{position:fixed;inset:0;background:rgba(8,12,20,0.9);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal{background:#0d1826;border:1px solid #1e3048;padding:26px;width:100%;max-width:340px;border-radius:2px}
+.modlbl{font-size:9px;letter-spacing:3px;color:#4a7fa5;text-transform:uppercase;margin-bottom:4px}
+.modtitle{font-family:'Bebas Neue';font-size:20px;letter-spacing:3px;color:#e8f4ff;margin-bottom:16px}
+.modact{display:flex;gap:8px;margin-top:12px}
+.toast{position:fixed;top:16px;right:16px;z-index:999;padding:10px 16px;font-size:11px;letter-spacing:1px;border-radius:2px;pointer-events:none;display:none}
+.toast.s{background:#0d1a10;border:1px solid #2a7a40;color:#4ab870;display:block}
+.toast.e{background:#1a0d0d;border:1px solid #a04040;color:#d06060;display:block}
+@media(max-width:580px){
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .scard:nth-child(3){border-right:none}
+  .scard:nth-child(4){border-top:1px solid #1e3048}
+  .scard:nth-child(5){border-top:1px solid #1e3048;border-right:none}
+  .txhdr{grid-template-columns:36px 1fr 90px 70px}
+  .txrow{grid-template-columns:36px 1fr 90px 70px}
+  .txftr{grid-template-columns:36px 1fr 90px 70px}
+  .fmrow{grid-template-columns:1fr}
+}
+@supports(padding-top:env(safe-area-inset-top)){
+  .hdr{padding-top:calc(16px + env(safe-area-inset-top))}
+}
+</style>
 </head>
 <body>
-<div id="app"></div>
+
+<div id="toast" class="toast"></div>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">LEDGER</div>
+    <div class="hdr-sub">Personal Expense Tracker</div>
+  </div>
+  <div class="mnav">
+    <button class="btn-nav" onclick="navMonth(-1)">&#9664;</button>
+    <div>
+      <div class="mname" id="mname"></div>
+      <div class="myear" id="myear"></div>
+    </div>
+    <button class="btn-nav" onclick="navMonth(1)">&#9654;</button>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="scard tap" onclick="openStart()">
+    <div class="slbl">Starting</div>
+    <div class="sval" id="s-start" style="color:#4a7fa5">—</div>
+    <div class="ssub">tap to set</div>
+  </div>
+  <div class="scard">
+    <div class="slbl">Total In</div>
+    <div class="sval" id="s-in" style="color:#4ab870">$0.00</div>
+    <div class="ssub" id="s-in-sub">0 entries</div>
+  </div>
+  <div class="scard">
+    <div class="slbl">Total Out</div>
+    <div class="sval" id="s-out" style="color:#d06060">$0.00</div>
+    <div class="ssub" id="s-out-sub">0 entries</div>
+  </div>
+  <div class="scard">
+    <div class="slbl">Mandatory</div>
+    <div class="sval" id="s-mand" style="color:#8a8a40">$0.00</div>
+    <div class="ssub">fixed expenses</div>
+  </div>
+  <div class="scard">
+    <div class="slbl">Closing</div>
+    <div class="sval" id="s-close" style="color:#4ab870">$0.00</div>
+    <div class="ssub" id="s-close-sub">remaining</div>
+  </div>
+</div>
+
+<div class="splitbar">
+  <div class="spi">
+    <span class="spilbl" style="color:#4a4a20">Mandatory Outflow</span>
+    <span class="spival" id="sp-mand" style="color:#8a8a40">$0.00</span>
+  </div>
+  <div class="spi">
+    <span class="spilbl" style="color:#2a5070">Personal Spending</span>
+    <span class="spival" id="sp-pers" style="color:#4a7fa5">$0.00</span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="toolbar">
+    <div class="txcount" id="txcount">0 Transactions</div>
+    <button class="btn-p" onclick="openForm()">+ Add Transaction</button>
+  </div>
+
+  <div id="formbox" style="display:none" class="formbox">
+    <div class="fmtitle" id="fmtitle">New Transaction</div>
+    <div class="fmrow">
+      <input id="fm-label" class="inp" placeholder="Description" oninput="onLabelInput()" onkeydown="if(event.key==='Enter')submitForm()"/>
+      <input id="fm-amount" class="inp" placeholder="Amount" inputmode="decimal" onkeydown="if(event.key==='Enter')submitForm()"/>
+    </div>
+    <div class="typerow">
+      <button id="btn-debit" class="typebtn debit" onclick="setType('debit')">− Outgoing</button>
+      <button id="btn-credit" class="typebtn" onclick="setType('credit')">+ Incoming</button>
+    </div>
+    <div class="mandtog" onclick="toggleMand()">
+      <div class="chk" id="chk"></div>
+      <span class="mandlbl" id="mandlbl">Mandatory / Fixed Expense</span>
+      <span class="autotag" id="autotag" style="display:none">auto-detected</span>
+    </div>
+    <div class="fmactions">
+      <button class="btn-p" id="fm-submit" onclick="submitForm()">Add</button>
+      <button class="btn-g" onclick="closeForm()">Cancel</button>
+    </div>
+  </div>
+
+  <div id="warnbar" class="warnbar" style="display:none">
+    <span class="warntext" id="warntext"></span>
+    <button class="btn-g" style="border-color:#2a3a1a;color:#4a7a30" onclick="openStart()">Set →</button>
+  </div>
+
+  <div id="txcontainer"></div>
+</div>
+
+<div id="startoverlay" class="overlay" style="display:none" onclick="closeStart()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modlbl">Starting Balance</div>
+    <div class="modtitle" id="modtitle"></div>
+    <input id="start-inp" class="inp" placeholder="e.g. 6551" inputmode="decimal" onkeydown="if(event.key==='Enter')saveStart()"/>
+    <div class="modact">
+      <button class="btn-p" onclick="saveStart()">Confirm</button>
+      <button class="btn-g" onclick="closeStart()">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <script>
-const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const MANDATORY_KEYWORDS = ["uob","nafka","anytimefitness","af raimi","ntuc","microsoft","iras","income tax","hdb","vwra","cpf"];
-const isMandatory = (label) => MANDATORY_KEYWORDS.some(k => label.toLowerCase().includes(k));
-const fmt = (n) => "$" + Math.abs(n).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const generateId = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var MKEYS=["uob","nafka","anytimefitness","af raimi","ntuc","microsoft","iras","income tax","hdb","vwra","cpf"];
+function isMand(l){return MKEYS.some(function(k){return l.toLowerCase().indexOf(k)>=0})}
+function fmt(n){return "$"+Math.abs(n).toLocaleString("en-SG",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 
-// State
-let state = {
-  currentMonth: new Date().getMonth(),
-  currentYear: new Date().getFullYear(),
-  data: {}, // { "2026-5": { startingBalance, transactions[] } }
-  showForm: false,
-  editingId: null,
-  formLabel: "",
-  formAmount: "",
-  formType: "debit",
-  formMandatory: false,
-  showStartModal: false,
-  startInput: "",
-  deleteConfirm: null,
-  toast: null,
-  toastTimeout: null,
-  selectedTxId: null,
-};
+var curMonth=new Date().getMonth();
+var curYear=new Date().getFullYear();
+var data={};
+var editId=null;
+var formType="debit";
+var formMand=false;
+var selId=null;
+var delConfirm=null;
+var toastTimer=null;
 
-// Persistence
-function loadData() {
-  try {
-    const saved = localStorage.getItem("ledger-data");
-    if (saved) state.data = JSON.parse(saved);
-  } catch(e) {}
-}
-function saveData() {
-  try { localStorage.setItem("ledger-data", JSON.stringify(state.data)); } catch(e) {}
+function load(){try{var s=localStorage.getItem("ledger-v1");if(s)data=JSON.parse(s)}catch(e){}}
+function save(){try{localStorage.setItem("ledger-v1",JSON.stringify(data))}catch(e){}}
+function mkey(){return curYear+"-"+curMonth}
+function mdata(){return data[mkey()]||{startingBalance:null,transactions:[]}}
+
+function toast(msg,type){
+  clearTimeout(toastTimer);
+  var el=document.getElementById("toast");
+  el.textContent=msg;el.className="toast "+(type||"s");
+  toastTimer=setTimeout(function(){el.className="toast"},2500);
 }
 
-function getMonthKey() { return `${state.currentYear}-${state.currentMonth}`; }
-function getMonthData() { return state.data[getMonthKey()] || { startingBalance: null, transactions: [] }; }
-
-function showToast(msg, type = "success") {
-  clearTimeout(state.toastTimeout);
-  state.toast = { msg, type };
-  render();
-  state.toastTimeout = setTimeout(() => { state.toast = null; render(); }, 2500);
+function navMonth(d){
+  var m=curMonth+d,y=curYear;
+  if(m>11){m=0;y++}if(m<0){m=11;y--}
+  curMonth=m;curYear=y;selId=null;delConfirm=null;
+  closeForm();refresh();
 }
 
-function navMonth(dir) {
-  let m = state.currentMonth + dir;
-  let y = state.currentYear;
-  if (m > 11) { m = 0; y++; }
-  if (m < 0) { m = 11; y--; }
-  state.currentMonth = m; state.currentYear = y;
-  state.showForm = false; state.editingId = null;
-  state.deleteConfirm = null; state.selectedTxId = null;
-  render();
+function refresh(){
+  var md=mdata();
+  var txns=md.transactions||[];
+  var start=md.startingBalance!=null?md.startingBalance:0;
+  var totalIn=0,totalOut=0,mandOut=0,persOut=0;
+  txns.forEach(function(t){
+    if(t.amount>0)totalIn+=t.amount;
+    else{totalOut+=Math.abs(t.amount);if(t.mandatory)mandOut+=Math.abs(t.amount);else persOut+=Math.abs(t.amount);}
+  });
+  var closing=start+totalIn-totalOut;
+  var cc=closing>=0?"#4ab870":"#d06060";
+
+  document.getElementById("mname").textContent=MONTHS[curMonth];
+  document.getElementById("myear").textContent=curYear;
+  document.getElementById("s-start").textContent=md.startingBalance!=null?fmt(start):"—";
+  document.getElementById("s-in").textContent=fmt(totalIn);
+  document.getElementById("s-in-sub").textContent=txns.filter(function(t){return t.amount>0}).length+" entries";
+  document.getElementById("s-out").textContent=fmt(totalOut);
+  document.getElementById("s-out-sub").textContent=txns.filter(function(t){return t.amount<0}).length+" entries";
+  document.getElementById("s-mand").textContent=fmt(mandOut);
+  var sc=document.getElementById("s-close");
+  sc.textContent=fmt(closing);sc.style.color=cc;
+  var scs=document.getElementById("s-close-sub");
+  scs.textContent=closing>=0?"remaining":"deficit";scs.style.color=cc;
+  document.getElementById("sp-mand").textContent=fmt(mandOut);
+  document.getElementById("sp-pers").textContent=fmt(persOut);
+  document.getElementById("txcount").textContent=txns.length+" Transactions";
+
+  var wb=document.getElementById("warnbar");
+  if(md.startingBalance==null){
+    wb.style.display="flex";
+    document.getElementById("warntext").textContent="Set your starting balance for "+MONTHS[curMonth];
+  } else {wb.style.display="none"}
+
+  renderTxList(txns,start,closing,cc,totalIn,totalOut);
 }
 
-function setStartingBalance() {
-  const val = parseFloat(state.startInput.replace(/,/g, ""));
-  if (isNaN(val)) return;
-  const key = getMonthKey();
-  const md = getMonthData();
-  state.data[key] = { ...md, startingBalance: val };
-  state.showStartModal = false; state.startInput = "";
-  saveData(); showToast("Starting balance set"); render();
+function renderTxList(txns,start,closing,cc,totalIn,totalOut){
+  var c=document.getElementById("txcontainer");
+  if(txns.length===0){
+    c.innerHTML='<div class="empty"><div class="empty-t">NO ENTRIES</div><div class="empty-s">Add your first transaction above</div></div>';
+    return;
+  }
+  var running=start;
+  var rows="";
+  txns.forEach(function(tx,i){
+    running+=tx.amount;
+    var rc=tx.amount>0?"#4ab870":"#d06060";
+    var rbc=running>=0?"#4a7fa5":"#d06060";
+    var isSelected=selId===tx.id;
+    var isDel=delConfirm===tx.id;
+    var actions="";
+    if(isDel){
+      actions='<div style="display:flex;gap:4px"><button class="abtn d" onclick="confirmDel(\''+tx.id+'\')">✓ Yes</button><button class="abtn e" onclick="cancelDel()">✕</button></div>';
+    } else if(isSelected){
+      actions='<button class="abtn e" onclick="startEdit(\''+tx.id+'\')">edit</button><button class="abtn d" onclick="askDel(\''+tx.id+'\')">del</button>';
+    }
+    rows+='<div class="txrow'+(isDel?" del":"")+(isSelected?" sel":"")+'" onclick="selectTx(\''+tx.id+'\')">'+
+      '<span class="txidx">'+String(i+1).padStart(2,"0")+'</span>'+
+      '<div><span class="txlbl">'+esc(tx.label)+'</span>'+(tx.mandatory?'<span class="mbadge">fixed</span>':'')+
+      '<div class="txdate">'+esc(tx.date)+'</div></div>'+
+      '<div class="txamt" style="color:'+rc+'">'+(tx.amount>0?"+":"−")+"$"+Math.abs(tx.amount).toFixed(2)+'</div>'+
+      '<div class="txrun" style="color:'+rbc+'">$'+running.toFixed(2)+'</div>'+
+      '<div class="txact">'+actions+'</div>'+
+      '</div>';
+  });
+  var ftr='<div class="txftr">'+
+    '<span></span>'+
+    '<span style="font-size:9px;letter-spacing:2px;color:#2a5070;text-transform:uppercase">Month Total</span>'+
+    '<div class="ftramt"><div style="font-size:11px;color:#4ab870">+$'+totalIn.toFixed(2)+'</div><div style="font-size:11px;color:#d06060">−$'+totalOut.toFixed(2)+'</div></div>'+
+    '<div class="ftrcls" style="color:'+cc+'">$'+closing.toFixed(2)+'</div>'+
+    '<span></span></div>';
+  c.innerHTML='<div class="txlist"><div class="txhdr"><span>#</span><span>Description</span><span style="text-align:right">Amount</span><span style="text-align:right">Balance</span><span></span></div>'+rows+ftr+'</div>';
 }
 
-function addTransaction() {
-  const label = state.formLabel.trim();
-  const amount = parseFloat(state.formAmount.replace(/,/g, ""));
-  if (!label || isNaN(amount) || amount <= 0) return;
+function selectTx(id){
+  if(selId===id){selId=null}else{selId=id;delConfirm=null;}
+  refresh();
+}
+function askDel(id){event.stopPropagation();delConfirm=id;selId=null;refresh()}
+function cancelDel(){event.stopPropagation();delConfirm=null;refresh()}
+function confirmDel(id){
+  event.stopPropagation();
+  var key=mkey();var md=mdata();
+  md.transactions=md.transactions.filter(function(t){return t.id!==id});
+  data[key]=md;save();delConfirm=null;selId=null;
+  toast("Deleted","e");refresh();
+}
 
-  const tx = {
-    id: state.editingId || generateId(),
-    label,
-    amount: state.formType === "debit" ? -amount : amount,
-    type: state.formType,
-    mandatory: state.formMandatory,
-    date: new Date().toLocaleDateString("en-SG", { day: "2-digit", month: "short" }),
+function openForm(){
+  editId=null;formType="debit";formMand=false;
+  document.getElementById("fm-label").value="";
+  document.getElementById("fm-amount").value="";
+  document.getElementById("fmtitle").textContent="New Transaction";
+  document.getElementById("fm-submit").textContent="Add";
+  updateTypeUI();updateMandUI();
+  document.getElementById("formbox").style.display="block";
+  document.getElementById("fm-label").focus();
+}
+function closeForm(){
+  document.getElementById("formbox").style.display="none";
+  editId=null;
+}
+function setType(t){formType=t;updateTypeUI()}
+function updateTypeUI(){
+  document.getElementById("btn-debit").className="typebtn"+(formType==="debit"?" debit":"");
+  document.getElementById("btn-credit").className="typebtn"+(formType==="credit"?" credit":"");
+}
+function toggleMand(){formMand=!formMand;updateMandUI()}
+function updateMandUI(){
+  var c=document.getElementById("chk");
+  c.className="chk"+(formMand?" on":"");
+  c.innerHTML=formMand?'<div class="chkdot"></div>':"";
+  document.getElementById("mandlbl").className="mandlbl"+(formMand?" on":"");
+}
+function onLabelInput(){
+  var lbl=document.getElementById("fm-label").value;
+  var auto=isMand(lbl);
+  formMand=auto;updateMandUI();
+  document.getElementById("autotag").style.display=auto?"inline":"none";
+}
+function submitForm(){
+  var lbl=document.getElementById("fm-label").value.trim();
+  var amt=parseFloat(document.getElementById("fm-amount").value.replace(/,/g,""));
+  if(!lbl||isNaN(amt)||amt<=0)return;
+  var tx={
+    id:editId||genId(),label:lbl,
+    amount:formType==="debit"?-amt:amt,
+    type:formType,mandatory:formMand,
+    date:new Date().toLocaleDateString("en-SG",{day:"2-digit",month:"short"})
   };
-
-  const key = getMonthKey();
-  const md = getMonthData();
-  const txns = state.editingId
-    ? md.transactions.map(t => t.id === state.editingId ? tx : t)
-    : [...md.transactions, tx];
-  state.data[key] = { ...md, transactions: txns };
-
-  const wasEditing = !!state.editingId;
-  state.showForm = false; state.editingId = null;
-  state.formLabel = ""; state.formAmount = "";
-  state.formType = "debit"; state.formMandatory = false;
-
-  saveData(); showToast(wasEditing ? "Updated" : "Added"); render();
+  var key=mkey();var md=mdata();
+  if(editId){md.transactions=md.transactions.map(function(t){return t.id===editId?tx:t})}
+  else{md.transactions.push(tx)}
+  data[key]=md;save();
+  var wasEdit=!!editId;
+  closeForm();selId=null;
+  toast(wasEdit?"Updated":"Added");refresh();
+}
+function startEdit(id){
+  event.stopPropagation();
+  var md=mdata();
+  var tx=md.transactions.find(function(t){return t.id===id});
+  if(!tx)return;
+  editId=id;formType=tx.type;formMand=tx.mandatory;
+  document.getElementById("fm-label").value=tx.label;
+  document.getElementById("fm-amount").value=Math.abs(tx.amount).toString();
+  document.getElementById("fmtitle").textContent="Edit Transaction";
+  document.getElementById("fm-submit").textContent="Update";
+  document.getElementById("autotag").style.display=isMand(tx.label)?"inline":"none";
+  updateTypeUI();updateMandUI();
+  document.getElementById("formbox").style.display="block";
+  selId=null;refresh();
+  document.getElementById("fm-label").focus();
 }
 
-function deleteTransaction(id) {
-  const key = getMonthKey();
-  const md = getMonthData();
-  state.data[key] = { ...md, transactions: md.transactions.filter(t => t.id !== id) };
-  state.deleteConfirm = null; state.selectedTxId = null;
-  saveData(); showToast("Deleted", "error"); render();
+function openStart(){
+  document.getElementById("start-inp").value="";
+  document.getElementById("modtitle").textContent=MONTHS[curMonth]+" "+curYear;
+  document.getElementById("startoverlay").style.display="flex";
+  setTimeout(function(){document.getElementById("start-inp").focus()},50);
+}
+function closeStart(){document.getElementById("startoverlay").style.display="none"}
+function saveStart(){
+  var val=parseFloat(document.getElementById("start-inp").value.replace(/,/g,""));
+  if(isNaN(val))return;
+  var key=mkey();var md=mdata();
+  md.startingBalance=val;data[key]=md;save();
+  closeStart();toast("Starting balance set");refresh();
 }
 
-function startEdit(tx) {
-  state.formLabel = tx.label;
-  state.formAmount = Math.abs(tx.amount).toString();
-  state.formType = tx.type;
-  state.formMandatory = tx.mandatory;
-  state.editingId = tx.id;
-  state.showForm = true;
-  state.selectedTxId = null;
-  render();
-  setTimeout(() => { const el = document.getElementById("form-label"); if (el) el.focus(); }, 50);
-}
-
-// Render
-function render() {
-  const md = getMonthData();
-  const txns = md.transactions;
-  const startBal = md.startingBalance ?? 0;
-  const totalIn = txns.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
-  const totalOut = txns.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
-  const mandatoryOut = txns.filter(t => t.amount < 0 && t.mandatory).reduce((s, t) => s + Math.abs(t.amount), 0);
-  const personalOut = txns.filter(t => t.amount < 0 && !t.mandatory).reduce((s, t) => s + Math.abs(t.amount), 0);
-  const closingBal = startBal + totalIn - totalOut;
-
-  let running = startBal;
-  const txnsWithRunning = txns.map(t => { running += t.amount; return { ...t, running }; });
-
-  const closingColor = closingBal >= 0 ? "#4ab870" : "#d06060";
-
-  document.getElementById("app").innerHTML = `
-    ${state.toast ? `<div class="toast ${state.toast.type}">${state.toast.msg}</div>` : ""}
-
-    <!-- HEADER -->
-    <div class="header">
-      <div>
-        <div class="header-title">LEDGER</div>
-        <div class="header-sub">Personal Expense Tracker</div>
-      </div>
-      <div class="month-nav">
-        <button class="btn-nav" onclick="navMonth(-1)">&#9664;</button>
-        <div class="month-label">
-          <div class="month-name">${MONTHS[state.currentMonth]}</div>
-          <div class="month-year">${state.currentYear}</div>
-        </div>
-        <button class="btn-nav" onclick="navMonth(1)">&#9654;</button>
-      </div>
-    </div>
-
-    <!-- STATS -->
-    <div class="stats-grid">
-      <div class="stat-card clickable" onclick="openStartModal()">
-        <div class="stat-label">Starting</div>
-        <div class="stat-value" style="color:#4a7fa5">${md.startingBalance !== null ? fmt(startBal) : "—"}</div>
-        <div class="stat-sub">tap to set ↗</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total In</div>
-        <div class="stat-value" style="color:#4ab870">${fmt(totalIn)}</div>
-        <div class="stat-sub">${txns.filter(t=>t.amount>0).length} entries</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total Out</div>
-        <div class="stat-value" style="color:#d06060">${fmt(totalOut)}</div>
-        <div class="stat-sub">${txns.filter(t=>t.amount<0).length} entries</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Mandatory</div>
-        <div class="stat-value" style="color:#8a8a40">${fmt(mandatoryOut)}</div>
-        <div class="stat-sub">fixed expenses</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Closing</div>
-        <div class="stat-value" style="color:${closingColor}">${fmt(closingBal)}</div>
-        <div class="stat-sub" style="color:${closingColor}">${closingBal >= 0 ? "remaining" : "deficit"}</div>
-      </div>
-    </div>
-
-    <!-- SPLIT BAR -->
-    <div class="split-bar">
-      <div class="split-item">
-        <span class="split-label" style="color:#4a4a20">Mandatory Outflow</span>
-        <span class="split-value" style="color:#8a8a40">${fmt(mandatoryOut)}</span>
-      </div>
-      <div class="split-item">
-        <span class="split-label" style="color:#2a5070">Personal Spending</span>
-        <span class="split-value" style="color:#4a7fa5">${fmt(personalOut)}</span>
-      </div>
-    </div>
-
-    <!-- MAIN -->
-    <div class="main">
-      <div class="toolbar">
-        <div class="tx-count">${txns.length} Transactions</div>
-        <button class="btn-primary" onclick="toggleForm()">+ Add Transaction</button>
-      </div>
-
-      ${state.showForm ? `
-      <div class="form-box">
-        <div class="form-title">${state.editingId ? "Edit Transaction" : "New Transaction"}</div>
-        <div class="form-row">
-          <input id="form-label" class="input-field" placeholder="Description" value="${escHtml(state.formLabel)}"
-            oninput="state.formLabel=this.value; updateMandatoryAuto()" onkeydown="if(event.key==='Enter')addTransaction()" />
-          <input id="form-amount" class="input-field" placeholder="Amount" value="${escHtml(state.formAmount)}"
-            oninput="state.formAmount=this.value" onkeydown="if(event.key==='Enter')addTransaction()" inputmode="decimal" />
-        </div>
-        <div class="type-row">
-          <button class="type-btn ${state.formType==='debit'?'active-debit':''}" onclick="state.formType='debit';render()">− Outgoing</button>
-          <button class="type-btn ${state.formType==='credit'?'active-credit':''}" onclick="state.formType='credit';render()">+ Incoming</button>
-        </div>
-        <div class="mandatory-toggle" onclick="state.formMandatory=!state.formMandatory;render()">
-          <div class="checkbox ${state.formMandatory?'checked'}">${state.formMandatory?'<div class="checkbox-dot"></div>':''}</div>
-          <span class="mandatory-label ${state.formMandatory?'active':''}">Mandatory / Fixed Expense</span>
-          ${isMandatory(state.formLabel)?'<span class="auto-tag">auto-detected</span>':''}
-        </div>
-        <div class="form-actions">
-          <button class="btn-primary" onclick="addTransaction()">${state.editingId?'Update':'Add'}</button>
-          <button class="btn-ghost" onclick="cancelForm()">Cancel</button>
-        </div>
-      </div>` : ""}
-
-      ${md.startingBalance === null ? `
-      <div class="warn-bar">
-        <span class="warn-text">Set your starting balance for ${MONTHS[state.currentMonth]}</span>
-        <button class="btn-ghost" style="border-color:#2a3a1a;color:#4a7a30" onclick="openStartModal()">Set →</button>
-      </div>` : ""}
-
-      ${txns.length === 0 ? `
-      <div class="empty">
-        <div class="empty-title">NO ENTRIES</div>
-        <div class="empty-sub">Add your first transaction above</div>
-      </div>` : `
-      <div class="tx-list">
-        <div class="tx-header">
-          <span>#</span><span>Description</span><span style="text-align:right">Amount</span><span style="text-align:right">Balance</span><span></span>
-        </div>
-        ${txnsWithRunning.map((tx, i) => `
-        <div class="tx-row ${state.deleteConfirm===tx.id?'deleting':''}" onclick="selectTx('${tx.id}')">
-          <span class="tx-index">${String(i+1).padStart(2,'0')}</span>
-          <div>
-            <span class="tx-label">${escHtml(tx.label)}</span>${tx.mandatory?'<span class="mandatory-badge">fixed</span>':''}
-            <div class="tx-date">${tx.date}</div>
-          </div>
-          <div class="tx-amount" style="color:${tx.amount>0?'#4ab870':'#d06060'}">
-            ${tx.amount>0?'+':'−'}$${Math.abs(tx.amount).toFixed(2)}
-          </div>
-          <div class="tx-running" style="color:${tx.running>=0?'#4a7fa5':'#d06060'}">
-            $${tx.running.toFixed(2)}
-          </div>
-          <div class="tx-actions">
-            ${state.deleteConfirm===tx.id ? `
-              <div class="confirm-btns">
-                <button class="action-btn del-btn" onclick="event.stopPropagation();deleteTransaction('${tx.id}')">✓ Yes</button>
-                <button class="action-btn edit-btn" onclick="event.stopPropagation();state.deleteConfirm=null;render()">✕</button>
-              </div>` : `
-              ${state.selectedTxId===tx.id ? `
-                <button class="action-btn edit-btn" onclick="event.stopPropagation();startEdit(${JSON.stringify(tx).replace(/"/g,'&quot;')})">edit</button>
-                <button class="action-btn del-btn" onclick="event.stopPropagation();state.deleteConfirm='${tx.id}';render()">del</button>` : ''}`}
-          </div>
-        </div>`).join("")}
-        <div class="tx-footer">
-          <span></span>
-          <span class="footer-label">Month Total</span>
-          <div class="footer-amounts" style="text-align:right">
-            <div style="font-size:11px;color:#4ab870">+$${totalIn.toFixed(2)}</div>
-            <div style="font-size:11px;color:#d06060">−$${totalOut.toFixed(2)}</div>
-          </div>
-          <div class="footer-closing" style="color:${closingColor}">$${closingBal.toFixed(2)}</div>
-          <span></span>
-        </div>
-      </div>`}
-    </div>
-
-    <!-- START MODAL -->
-    ${state.showStartModal ? `
-    <div class="modal-overlay" onclick="state.showStartModal=false;render()">
-      <div class="modal-box" onclick="event.stopPropagation()">
-        <div class="modal-label">Starting Balance</div>
-        <div class="modal-title">${MONTHS[state.currentMonth]} ${state.currentYear}</div>
-        <input class="input-field" placeholder="e.g. 6551" value="${escHtml(state.startInput)}"
-          oninput="state.startInput=this.value" onkeydown="if(event.key==='Enter')setStartingBalance()"
-          inputmode="decimal" autofocus />
-        <div class="modal-actions">
-          <button class="btn-primary" onclick="setStartingBalance()">Confirm</button>
-          <button class="btn-ghost" onclick="state.showStartModal=false;render()">Cancel</button>
-        </div>
-      </div>
-    </div>` : ""}
-  `;
-}
-
-function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function toggleForm() {
-  state.showForm = true; state.editingId = null;
-  state.formLabel = ""; state.formAmount = "";
-  state.formType = "debit"; state.formMandatory = false;
-  render();
-  setTimeout(() => { const el = document.getElementById("form-label"); if (el) el.focus(); }, 50);
-}
-function cancelForm() {
-  state.showForm = false; state.editingId = null; render();
-}
-function openStartModal() {
-  state.showStartModal = true; state.startInput = ""; render();
-  setTimeout(() => { const el = document.querySelector(".modal-box input"); if (el) el.focus(); }, 50);
-}
-function updateMandatoryAuto() {
-  state.formMandatory = isMandatory(state.formLabel);
-  // Update checkbox visually without full re-render
-  const cb = document.querySelector(".mandatory-toggle .checkbox");
-  const lbl = document.querySelector(".mandatory-label");
-  const tag = document.querySelector(".auto-tag");
-  if (cb) { cb.className = "checkbox" + (state.formMandatory ? " checked" : ""); cb.innerHTML = state.formMandatory ? '<div class="checkbox-dot"></div>' : ""; }
-  if (lbl) { lbl.className = "mandatory-label" + (state.formMandatory ? " active" : ""); }
-  if (isMandatory(state.formLabel) && !tag) {
-    const toggle = document.querySelector(".mandatory-toggle");
-    if (toggle) { const s = document.createElement("span"); s.className = "auto-tag"; s.textContent = "auto-detected"; toggle.appendChild(s); }
-  } else if (!isMandatory(state.formLabel) && tag) tag.remove();
-}
-function selectTx(id) {
-  state.selectedTxId = state.selectedTxId === id ? null : id;
-  state.deleteConfirm = null;
-  render();
-}
-
-// Init
-loadData();
-render();
+load();refresh();
 </script>
 </body>
 </html>
