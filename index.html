@@ -241,7 +241,7 @@ function toast(msg,type){
 
 function navMonth(d){
   var m=curMonth+d,y=curYear;
-  if(m>11){m=0;y++}if(m<0){m=11;y--}
+  if(m\x3E11){m=0;y++}if(m\x3C0){m=11;y--}
   curMonth=m;curYear=y;selId=null;delConfirm=null;
   closeForm();refresh();
 }
@@ -252,24 +252,24 @@ function refresh(){
   var start=md.startingBalance!=null?md.startingBalance:0;
   var totalIn=0,totalOut=0,mandOut=0,persOut=0;
   txns.forEach(function(t){
-    if(t.amount>0)totalIn+=t.amount;
+    if(t.amount\x3E0)totalIn+=t.amount;
     else{totalOut+=Math.abs(t.amount);if(t.mandatory)mandOut+=Math.abs(t.amount);else persOut+=Math.abs(t.amount);}
   });
   var closing=start+totalIn-totalOut;
-  var cc=closing>=0?"#4ab870":"#d06060";
+  var cc=closing\x3E=0?"#4ab870":"#d06060";
 
   document.getElementById("mname").textContent=MONTHS[curMonth];
   document.getElementById("myear").textContent=curYear;
   document.getElementById("s-start").textContent=md.startingBalance!=null?fmt(start):"—";
   document.getElementById("s-in").textContent=fmt(totalIn);
-  document.getElementById("s-in-sub").textContent=txns.filter(function(t){return t.amount>0}).length+" entries";
+  document.getElementById("s-in-sub").textContent=txns.filter(function(t){return t.amount\x3E0}).length+" entries";
   document.getElementById("s-out").textContent=fmt(totalOut);
-  document.getElementById("s-out-sub").textContent=txns.filter(function(t){return t.amount<0}).length+" entries";
+  document.getElementById("s-out-sub").textContent=txns.filter(function(t){return t.amount\x3C0}).length+" entries";
   document.getElementById("s-mand").textContent=fmt(mandOut);
   var sc=document.getElementById("s-close");
   sc.textContent=fmt(closing);sc.style.color=cc;
   var scs=document.getElementById("s-close-sub");
-  scs.textContent=closing>=0?"remaining":"deficit";scs.style.color=cc;
+  scs.textContent=closing\x3E=0?"remaining":"deficit";scs.style.color=cc;
   document.getElementById("sp-mand").textContent=fmt(mandOut);
   document.getElementById("sp-pers").textContent=fmt(persOut);
   document.getElementById("txcount").textContent=txns.length+" Transactions";
@@ -286,39 +286,39 @@ function refresh(){
 function renderTxList(txns,start,closing,cc,totalIn,totalOut){
   var c=document.getElementById("txcontainer");
   if(txns.length===0){
-    c.innerHTML='<div class="empty"><div class="empty-t">NO ENTRIES</div><div class="empty-s">Add your first transaction above</div></div>';
+    c.innerHTML='\x3Cdiv class="empty"\x3E\x3Cdiv class="empty-t"\x3ENO ENTRIES\x3C/div\x3E\x3Cdiv class="empty-s"\x3EAdd your first transaction above\x3C/div\x3E\x3C/div\x3E';
     return;
   }
   var running=start;
   var rows="";
   txns.forEach(function(tx,i){
     running+=tx.amount;
-    var rc=tx.amount>0?"#4ab870":"#d06060";
-    var rbc=running>=0?"#4a7fa5":"#d06060";
+    var rc=tx.amount\x3E0?"#4ab870":"#d06060";
+    var rbc=running\x3E=0?"#4a7fa5":"#d06060";
     var isSelected=selId===tx.id;
     var isDel=delConfirm===tx.id;
     var actions="";
     if(isDel){
-      actions='<div style="display:flex;gap:4px"><button class="abtn d" onclick="confirmDel(\''+tx.id+'\')">✓ Yes</button><button class="abtn e" onclick="cancelDel()">✕</button></div>';
+      actions='\x3Cdiv style="display:flex;gap:4px"\x3E\x3Cbutton class="abtn d" onclick="confirmDel(\''+tx.id+'\')"\x3E✓ Yes\x3C/button\x3E\x3Cbutton class="abtn e" onclick="cancelDel()"\x3E✕\x3C/button\x3E\x3C/div\x3E';
     } else if(isSelected){
-      actions='<button class="abtn e" onclick="startEdit(\''+tx.id+'\')">edit</button><button class="abtn d" onclick="askDel(\''+tx.id+'\')">del</button>';
+      actions='\x3Cbutton class="abtn e" onclick="startEdit(\''+tx.id+'\')"\x3Eedit\x3C/button\x3E\x3Cbutton class="abtn d" onclick="askDel(\''+tx.id+'\')"\x3Edel\x3C/button\x3E';
     }
-    rows+='<div class="txrow'+(isDel?" del":"")+(isSelected?" sel":"")+'" onclick="selectTx(\''+tx.id+'\')">'+
-      '<span class="txidx">'+String(i+1).padStart(2,"0")+'</span>'+
-      '<div><span class="txlbl">'+esc(tx.label)+'</span>'+(tx.mandatory?'<span class="mbadge">fixed</span>':'')+
-      '<div class="txdate">'+esc(tx.date)+'</div></div>'+
-      '<div class="txamt" style="color:'+rc+'">'+(tx.amount>0?"+":"−")+"$"+Math.abs(tx.amount).toFixed(2)+'</div>'+
-      '<div class="txrun" style="color:'+rbc+'">$'+running.toFixed(2)+'</div>'+
-      '<div class="txact">'+actions+'</div>'+
-      '</div>';
+    rows+='\x3Cdiv class="txrow'+(isDel?" del":"")+(isSelected?" sel":"")+'" onclick="selectTx(\''+tx.id+'\')"\x3E'+
+      '\x3Cspan class="txidx"\x3E'+String(i+1).padStart(2,"0")+'\x3C/span\x3E'+
+      '\x3Cdiv\x3E\x3Cspan class="txlbl"\x3E'+esc(tx.label)+'\x3C/span\x3E'+(tx.mandatory?'\x3Cspan class="mbadge"\x3Efixed\x3C/span\x3E':'')+
+      '\x3Cdiv class="txdate"\x3E'+esc(tx.date)+'\x3C/div\x3E\x3C/div\x3E'+
+      '\x3Cdiv class="txamt" style="color:'+rc+'"\x3E'+(tx.amount>0?"+":"−")+"$"+Math.abs(tx.amount).toFixed(2)+'\x3C/div\x3E'+
+      '\x3Cdiv class="txrun" style="color:'+rbc+'"\x3E$'+running.toFixed(2)+'\x3C/div\x3E'+
+      '\x3Cdiv class="txact"\x3E'+actions+'\x3C/div\x3E'+
+      '\x3C/div\x3E';
   });
-  var ftr='<div class="txftr">'+
-    '<span></span>'+
-    '<span style="font-size:9px;letter-spacing:2px;color:#2a5070;text-transform:uppercase">Month Total</span>'+
-    '<div class="ftramt"><div style="font-size:11px;color:#4ab870">+$'+totalIn.toFixed(2)+'</div><div style="font-size:11px;color:#d06060">−$'+totalOut.toFixed(2)+'</div></div>'+
-    '<div class="ftrcls" style="color:'+cc+'">$'+closing.toFixed(2)+'</div>'+
-    '<span></span></div>';
-  c.innerHTML='<div class="txlist"><div class="txhdr"><span>#</span><span>Description</span><span style="text-align:right">Amount</span><span style="text-align:right">Balance</span><span></span></div>'+rows+ftr+'</div>';
+  var ftr='\x3Cdiv class="txftr"\x3E'+
+    '\x3Cspan\x3E\x3C/span\x3E'+
+    '\x3Cspan style="font-size:9px;letter-spacing:2px;color:#2a5070;text-transform:uppercase"\x3EMonth Total\x3C/span\x3E'+
+    '\x3Cdiv class="ftramt"\x3E\x3Cdiv style="font-size:11px;color:#4ab870"\x3E+$'+totalIn.toFixed(2)+'\x3C/div\x3E\x3Cdiv style="font-size:11px;color:#d06060"\x3E−$'+totalOut.toFixed(2)+'\x3C/div\x3E\x3C/div\x3E'+
+    '\x3Cdiv class="ftrcls" style="color:'+cc+'"\x3E$'+closing.toFixed(2)+'\x3C/div\x3E'+
+    '\x3Cspan\x3E\x3C/span\x3E\x3C/div\x3E';
+  c.innerHTML='\x3Cdiv class="txlist"\x3E\x3Cdiv class="txhdr"\x3E\x3Cspan\x3E#\x3C/span\x3E\x3Cspan\x3EDescription\x3C/span\x3E\x3Cspan style="text-align:right"\x3EAmount\x3C/span\x3E\x3Cspan style="text-align:right"\x3EBalance\x3C/span\x3E\x3Cspan\x3E\x3C/span\x3E\x3C/div\x3E'+rows+ftr+'\x3C/div\x3E';
 }
 
 function selectTx(id){
@@ -358,7 +358,7 @@ function toggleMand(){formMand=!formMand;updateMandUI()}
 function updateMandUI(){
   var c=document.getElementById("chk");
   c.className="chk"+(formMand?" on":"");
-  c.innerHTML=formMand?'<div class="chkdot"></div>':"";
+  c.innerHTML=formMand?'\x3Cdiv class="chkdot"\x3E\x3C/div\x3E':"";
   document.getElementById("mandlbl").className="mandlbl"+(formMand?" on":"");
 }
 function onLabelInput(){
